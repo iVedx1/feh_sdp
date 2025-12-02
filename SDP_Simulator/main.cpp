@@ -3,9 +3,7 @@
 #include <string>
 using namespace std;
 
-// -------------------------
-// Button Class
-// -------------------------
+// Button class
 class Button {
 public:
     string label;
@@ -27,9 +25,7 @@ public:
     }
 };
 
-// -------------------------
-// Touch handling with debouncing
-// -------------------------
+// touch handling function
 void waitForTouch(float &x, float &y) {
     // Wait until a press is detected
     while (!LCD.Touch(&x, &y)) {}
@@ -124,11 +120,13 @@ void mainMenu() {
     Button stats("Stats", 50, 90, 100, 30);
     Button inst("Instructions", 50, 130, 160, 30);
     Button cred("Credits", 50, 170, 100, 30);
+    Button exit("Exit", 50, 210, 100, 30);
 
     play.draw();
     stats.draw();
     inst.draw();
     cred.draw();
+    exit.draw();
 
     float x, y;
     waitForTouch(x, y);
@@ -137,6 +135,12 @@ void mainMenu() {
     else if (stats.isPressed(x, y)) statsMenu();
     else if (inst.isPressed(x, y)) instructionsMenu();
     else if (cred.isPressed(x, y)) creditsMenu();
+    else if (exit.isPressed(x, y)) {
+        LCD.Clear();
+        LCD.WriteAt("Exiting...", 50, 100);
+        Sleep(1.0);
+        return;
+    }
 }
 
 // execution block
