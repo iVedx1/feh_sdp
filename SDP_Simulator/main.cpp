@@ -42,7 +42,6 @@ void waitForTouch(float &x, float &y) {
     while (LCD.Touch(&x, &y)) {}
 }
 
-
 void mainMenu();
 
 // Play Screen
@@ -120,6 +119,11 @@ void creditsMenu() {
 // main menu using buttons
 void mainMenu() {
     LCD.Clear();
+
+// background image
+    FEHImage backgroundmain;
+    backgroundmain.Open("test2.png");
+    backgroundmain.Draw(0,0);
 
     Button play("Play", 50, 50, 100, 30);
     Button stats("Stats", 50, 90, 100, 30);
