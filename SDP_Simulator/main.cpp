@@ -28,6 +28,8 @@ public:
 
     void draw2() {
         LCD.SetFontColor(WHITE);
+        LCD.FillRectangle(5, 30, 8, 20);   // left bar
+        LCD.FillRectangle(20, 30, 8, 20);
         LCD.WriteAt(label.c_str(), x + 5, y + 5);
     }
 
@@ -67,23 +69,24 @@ bool pauseMenu()
         if (resumeBtn.isPressed(x, y)) {
             return true;
         }
-        // Return to main menu → return false so playMenu can exit
+        // Return to main menu if return false so playMenu can exit
         if (menuBtn.isPressed(x, y)) {
             return false;
         }
-        return true; // default to resume if something strange happens
+        return true; // default to resume
     }
 }
 
 // Play Screen
 void playMenu() {
-
     while(true){
         LCD.Clear();
         LCD.DrawHorizontalLine(0,0,319);
         LCD.DrawHorizontalLine(20,0,319);
         LCD.SetFontScale(0.5);
-        LCD.WriteAt("Logo", 153, 5);
+        FEHImage tanklogo;
+        tanklogo.Open("TankGameLogo (1).png");
+        tanklogo.Draw(140,-15);
         LCD.WriteAt("P1:", 5, 5);
         LCD.WriteAt(":P2", 295, 5);
         LCD.WriteAt("Volleys:", 143, 25);
@@ -91,7 +94,16 @@ void playMenu() {
         LCD.DrawHorizontalLine(239,0,319);
         LCD.DrawHorizontalLine(195,0,319);
 
-        Button pauseBtn("||", 2, 27, 25, 20);
+        FEHImage tankmock;
+        tankmock.Open("TANKMOCKUP3.png");
+        tankmock.Draw(150,120);
+
+        LCD.SetFontScale(.5);
+        Button fireBtn("FIRE",278,210,32,20);
+        fireBtn.draw();
+
+        LCD.SetFontScale(1);
+        Button pauseBtn("", 2, 27, 25, 20);
         pauseBtn.draw2();
         float x, y;
         waitForTouch(x, y);
@@ -196,7 +208,7 @@ void mainMenu() {
         Sleep(1.0);
         return;
     }
-    else{}
+    else (true);
 }
 
 // reset volleys
@@ -235,4 +247,3 @@ int main() {
     mainMenu();  // start program
     return 0;
 }
-
