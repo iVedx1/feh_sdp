@@ -28,9 +28,65 @@ public:
 
     void draw2() {
         LCD.SetFontColor(WHITE);
-        LCD.FillRectangle(5, 30, 8, 20);   // left bar
-        LCD.FillRectangle(20, 30, 8, 20);
+        LCD.FillRectangle(5, 26, 1, 7);   // left bar
+        LCD.FillRectangle(10, 26, 1, 7);
         LCD.WriteAt(label.c_str(), x + 5, y + 5);
+    }
+
+    void draw3(){
+        // Primary Button
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x, 205, 70, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x, 205, 70, 30);
+        // Large Increment/Decrement Left
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x, 205, 10, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x, 205, 10, 30);
+        LCD.WriteAt("<",x+1,214);
+        // Small Increment/Decrement Left
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x+10, 205, 10, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x+10, 205, 10, 30);
+        LCD.WriteAt("<",x+11,214);
+        // Small Increment/Decrement Right
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x+61, 205, 10, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x+61, 205, 10, 30);
+        LCD.WriteAt(">",x+63,214);
+        // Large Increment/Decrement Right
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x+71, 205, 10, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x+71, 205, 10, 30);
+        LCD.WriteAt(">",x+73,214);
+        // Number Indicator
+
+    }
+
+    void draw4(){
+        // Primary Button
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x, 205, 45, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x, 205, 45, 30);
+        // Decrement
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x, 205, 10, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x, 205, 10, 30);
+        LCD.WriteAt("<",x+1,214);
+        // Increment 
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(x+35, 205, 10, 30);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x+35, 205, 10, 30);
+        LCD.WriteAt(">",x+37,214);
+        // Number Indicator
+
     }
 
     bool isPressed(float tx, float ty) {
@@ -79,31 +135,80 @@ bool pauseMenu()
 
 // Play Screen
 void playMenu() {
+    int powerValue = 50;   // default
+    int angleValue = 45;   // default
+
     while(true){
         LCD.Clear();
-        LCD.DrawHorizontalLine(0,0,319);
-        LCD.DrawHorizontalLine(20,0,319);
-        LCD.SetFontScale(0.5);
-        FEHImage tanklogo;
-        tanklogo.Open("TankGameLogo (1).png");
-        tanklogo.Draw(140,-15);
-        LCD.WriteAt("P1:", 5, 5);
-        LCD.WriteAt(":P2", 295, 5);
-        LCD.WriteAt("Volleys:", 143, 25);
-        LCD.SetFontScale(1);
-        LCD.DrawHorizontalLine(239,0,319);
-        LCD.DrawHorizontalLine(195,0,319);
+        // Reference Lines
+        LCD.DrawVerticalLine(160, 0, 240 );
+        LCD.DrawHorizontalLine(120,0,320);
 
+        // top part of UI
+        LCD.SetFontColor(GRAY);
+        LCD.FillRectangle(0, 0, 320, 20);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(0, 0, 320, 20);
+        LCD.SetFontScale(0.5);
         FEHImage tankmock;
-        tankmock.Open("TANKMOCKUP3.png");
-        tankmock.Draw(150,120);
+        tankmock.Open("BlueTank.png");
+        tankmock.Draw(5,7);
+        LCD.WriteAt("P1:", 20, 4);
+        FEHImage tankmo;
+        tankmo.Open("RedTank.png");
+        tankmo.Draw(302,7);
+        LCD.WriteAt(":P2", 280, 5);
+        LCD.WriteAt("Volleys:", 138, 5);
+        LCD.SetFontScale(1);
+        
+        // Botton part of hud
+        LCD.SetFontColor(GRAY);
+        LCD.FillRectangle(0, 200, 320, 40);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(0, 200, 320, 40);
 
         LCD.SetFontScale(.5);
-        Button fireBtn("FIRE",278,210,32,20);
+        Button fireBtn("FIRE!",278,210,37,20);
         fireBtn.draw();
 
+        LCD.SetFontColor(BLACK);
+        // Power Select Button
+        Button Pow("",5,0,0,0);
+        Pow.draw3();
+        LCD.WriteAt("POW",35,205);
+        LCD.SetFontColor(WHITE);
+        LCD.WriteAt(powerValue, 35, 217);
+        LCD.SetFontColor(BLACK);
+        // Pow Large Decrement Button
+        Button PowLD("",5,205,10,30);
+        // Pow Small Decrement Button
+        Button PowSD("",15,205,10,30);
+        // Pow Small Increment Button
+        Button PowSI("",66,205,10,30);
+        // Pow Large Increment Button
+        Button PowLI("",76,205,10,30);
+        
+        // Angle Select Button
+        Button Ang("",95,0,0,0);
+        Ang.draw3();
+        LCD.WriteAt("ANG",125,205);
+        // Ang Large Decrement Button
+        Button AngLD("",0,0,0,0);
+        // Ang Small Decrement Button
+        Button AngSD("",0,0,0,0);
+        // Ang Small Increment Button
+        Button AngSI("",0,0,0,0);
+        // Ang Large Increment Button
+        Button AngLI("",0,0,0,0);
+
+
+        // Move Button
+        Button Move("",200,0,0,0);
+        Move.draw4();
+        LCD.WriteAt("MOVE",210,205);
+
         LCD.SetFontScale(1);
-        Button pauseBtn("", 2, 27, 25, 20);
+        Button pauseBtn("", 2, 26, 10, 10);
         pauseBtn.draw2();
         float x, y;
         waitForTouch(x, y);
@@ -115,7 +220,18 @@ void playMenu() {
             }
         // pauseMenu returns true to resume gameplay
             }
+        // POWER BUTTON HANDLING
+        if (PowLD.isPressed(x, y)) powerValue -= 5;
+        else if (PowSD.isPressed(x, y)) powerValue -= 1;
+        else if (PowSI.isPressed(x, y)) powerValue += 1;
+        else if (PowLI.isPressed(x, y)) powerValue += 5;
+
+        if (powerValue < 0) powerValue = 0;
+        if (powerValue > 100) powerValue = 100;
+
         continue;
+
+        LCD.DrawHorizontalLine(210,0,320);
     }
 }
 
@@ -234,8 +350,8 @@ void renderProjectileArc(float x0, float y0, float power, float angleDeg) {
 
 bool wasHitOnSelf(float projX, float projY, float tankX, float tankY)
 {
-    const int TANK_width=40;
-    const int TANK_height=20;
+    const int TANK_width=12;
+    const int TANK_height=8;
     bool withinX = (projX >= tankX) && (projX <= tankX + TANK_width);
     bool withinY = (projY >= tankY) && (projY <= tankY + TANK_height);
     return (withinX && withinY);
