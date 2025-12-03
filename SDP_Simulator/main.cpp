@@ -89,6 +89,14 @@ public:
 
     }
 
+    void draw5() {
+        LCD.SetFontColor(RED);
+        LCD.FillRectangle(x, y, w, h);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x, y, w, h);
+        LCD.WriteAt(label.c_str(), x + 5, y + 5);
+    }
+
     bool isPressed(float tx, float ty) {
         return (tx >= x && tx <= x + w && ty >= y && ty <= y + h);
     }
@@ -137,12 +145,26 @@ bool pauseMenu()
 void playMenu() {
     int powerValue = 50;   // default
     int angleValue = 45;   // default
+    int moveperturn = 2;
+    int tank1X = 30;      // starting x-position
+    int tank1Y = 168;     // sits on ground (groundY - tankHeight)
+    int tankWidth = 12;
+    int tankHeight = 8;
+
 
     while(true){
         LCD.Clear();
         // Reference Lines
         LCD.DrawVerticalLine(160, 0, 240 );
         LCD.DrawHorizontalLine(120,0,320);
+
+        int groundY = 180;
+        LCD.SetFontColor(GREEN);
+        LCD.FillRectangle(0, groundY, 320, 60);
+
+        FEHImage tankImg;
+        tankImg.Open("BlueTank.png");
+        tankImg.Draw(tank1X, tank1Y);
 
         // top part of UI
         LCD.SetFontColor(GRAY);
@@ -169,7 +191,7 @@ void playMenu() {
 
         LCD.SetFontScale(.5);
         Button fireBtn("FIRE!",278,210,37,20);
-        fireBtn.draw();
+        fireBtn.draw5();
 
         LCD.SetFontColor(BLACK);
         // Power Select Button
@@ -192,20 +214,28 @@ void playMenu() {
         Button Ang("",95,0,0,0);
         Ang.draw3();
         LCD.WriteAt("ANG",125,205);
+        LCD.SetFontColor(WHITE);
+        LCD.WriteAt(angleValue, 125, 217);
+        LCD.SetFontColor(BLACK);
         // Ang Large Decrement Button
-        Button AngLD("",0,0,0,0);
+        Button AngLD("",95,205,10,30);
         // Ang Small Decrement Button
-        Button AngSD("",0,0,0,0);
+        Button AngSD("",105,205,10,30);
         // Ang Small Increment Button
-        Button AngSI("",0,0,0,0);
+        Button AngSI("",156,205,10,30);
         // Ang Large Increment Button
-        Button AngLI("",0,0,0,0);
+        Button AngLI("",166,205,10,30);
 
 
         // Move Button
         Button Move("",200,0,0,0);
         Move.draw4();
         LCD.WriteAt("MOVE",210,205);
+        Button MoveD("",200,205,10,30);
+        Button MoveI("",235,205,10,30);
+        LCD.SetFontColor(WHITE);
+        LCD.WriteAt(moveperturn, 215, 217);
+        LCD.SetFontColor(BLACK);
 
         LCD.SetFontScale(1);
         Button pauseBtn("", 2, 26, 10, 10);
@@ -220,15 +250,27 @@ void playMenu() {
             }
         // pauseMenu returns true to resume gameplay
             }
-        // POWER BUTTON HANDLING
+        // power logic
         if (PowLD.isPressed(x, y)) powerValue -= 5;
         else if (PowSD.isPressed(x, y)) powerValue -= 1;
         else if (PowSI.isPressed(x, y)) powerValue += 1;
         else if (PowLI.isPressed(x, y)) powerValue += 5;
-
         if (powerValue < 0) powerValue = 0;
         if (powerValue > 100) powerValue = 100;
 
+        // angle logic
+        if (AngLD.isPressed(x, y)) angleValue -= 5;
+        else if (AngSD.isPressed(x, y)) angleValue -= 1;
+        else if (AngSI.isPressed(x, y)) angleValue += 1;
+        else if (AngLI.isPressed(x, y)) angleValue += 5;
+
+        if (angleValue < 0) angleValue = 0;
+        if (angleValue > 90) angleValue = 90;
+
+        
+        if (MoveD.isPressed(x, y)) tank1X -= 3;  
+        if (MoveI.isPressed(x, y)) tank1X += 3;
+            
         continue;
 
         LCD.DrawHorizontalLine(210,0,320);
