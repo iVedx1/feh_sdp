@@ -145,9 +145,9 @@ bool pauseMenu()
 void playMenu() {
     int powerValue = 50;   // default
     int angleValue = 45;   // default
-    int moveperturn = 2;
+    int moveperturn = 3;
     int tank1X = 30;      // starting x-position
-    int tank1Y = 168;     // sits on ground (groundY - tankHeight)
+    int tank1Y = 172;     // sits on ground (groundY - tankHeight)
     int tankWidth = 12;
     int tankHeight = 8;
 
@@ -231,7 +231,9 @@ void playMenu() {
         Button Move("",200,0,0,0);
         Move.draw4();
         LCD.WriteAt("MOVE",210,205);
+        // Move Decrement Button
         Button MoveD("",200,205,10,30);
+        // Move Increment Button
         Button MoveI("",235,205,10,30);
         LCD.SetFontColor(WHITE);
         LCD.WriteAt(moveperturn, 215, 217);
@@ -267,10 +269,21 @@ void playMenu() {
         if (angleValue < 0) angleValue = 0;
         if (angleValue > 90) angleValue = 90;
 
-        
-        if (MoveD.isPressed(x, y)) tank1X -= 3;  
-        if (MoveI.isPressed(x, y)) tank1X += 3;
-            
+        if (moveperturn > 0){
+            if (MoveD.isPressed(x, y)){
+                moveperturn -=1;
+                tank1X -= 5;  
+            }
+            if (MoveI.isPressed(x, y)) {
+                tank1X += 5;
+                moveperturn -=1;
+            }
+            // keep tank within screen bounds
+            if (tank1X < 0) tank1X = 0;
+            if (tank1X > 320 - tankWidth) tank1X = 320 - tankWidth;
+
+        }
+        if (fireBtn.isPressed(x, y)) moveperturn =3;
         continue;
 
         LCD.DrawHorizontalLine(210,0,320);
