@@ -26,6 +26,11 @@ public:
         LCD.WriteAt(label.c_str(), x + 5, y + 5);
     }
 
+    void draw2() {
+        LCD.SetFontColor(WHITE);
+        LCD.WriteAt(label.c_str(), x + 5, y + 5);
+    }
+
     bool isPressed(float tx, float ty) {
         return (tx >= x && tx <= x + w && ty >= y && ty <= y + h);
     }
@@ -44,19 +49,61 @@ void waitForTouch(float &x, float &y) {
 
 void mainMenu();
 
-// Play Screen
-void playMenu() {
+bool pauseMenu()
+{
     LCD.Clear();
-    LCD.WriteAt("Play game here", 10, 10);
-    LCD.DrawCircle(40,40,5);
-    Button back("Return to Menu", 10, 40, 180, 30);
-    back.draw();
+    LCD.WriteAt("Game Paused", 100, 40);
+
+    Button resumeBtn("Resume", 80, 100, 160, 40);
+    Button menuBtn("Main Menu", 80, 160, 160, 40);
+
+    resumeBtn.draw();
+    menuBtn.draw();
 
     float x, y;
-    waitForTouch(x, y);
+    while (true){
+        waitForTouch(x, y);
+        // Resume returns true
+        if (resumeBtn.isPressed(x, y)) {
+            return true;
+        }
+        // Return to main menu → return false so playMenu can exit
+        if (menuBtn.isPressed(x, y)) {
+            return false;
+        }
+        return true; // default to resume if something strange happens
+    }
+}
 
-    if (back.isPressed(x, y)) {
-        mainMenu();
+// Play Screen
+void playMenu() {
+
+    while(true){
+        LCD.Clear();
+        LCD.DrawHorizontalLine(0,0,319);
+        LCD.DrawHorizontalLine(20,0,319);
+        LCD.SetFontScale(0.5);
+        LCD.WriteAt("Logo", 153, 5);
+        LCD.WriteAt("P1:", 5, 5);
+        LCD.WriteAt(":P2", 295, 5);
+        LCD.WriteAt("Volleys:", 143, 25);
+        LCD.SetFontScale(1);
+        LCD.DrawHorizontalLine(239,0,319);
+        LCD.DrawHorizontalLine(195,0,319);
+
+        Button pauseBtn("||", 2, 27, 25, 20);
+        pauseBtn.draw2();
+        float x, y;
+        waitForTouch(x, y);
+        if (pauseBtn.isPressed(x, y)) {
+        if (!pauseMenu()) {  
+        // pauseMenu returns false to return to main menu
+            mainMenu();
+            return;
+            }
+        // pauseMenu returns true to resume gameplay
+            }
+        continue;
     }
 }
 
