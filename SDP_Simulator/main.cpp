@@ -1,7 +1,7 @@
 #include "FEHLCD.h"
 #include "FEHUtility.h"
 #include "FEHImages.h"
-#include <string.h>
+#include <string>
 #include <math.h>
 using namespace std;
 #define g 9.81
@@ -97,6 +97,11 @@ public:
         LCD.WriteAt(label.c_str(), x + 5, y + 5);
     }
 
+    void draw6(){
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(x, y, w, h);
+    }
+
     bool isPressed(float tx, float ty) {
         return (tx >= x && tx <= x + w && ty >= y && ty <= y + h);
     }
@@ -140,6 +145,97 @@ bool pauseMenu()
         return true; // default to resume
     }
 }
+// Defines string color
+string tank1Color = "";
+string tank2Color = "";
+
+// Tank Color Selection
+void tankSelectMenu() {
+    while (true) {
+        LCD.Clear();
+        LCD.SetFontColor(WHITE);
+
+        FEHImage tankselectbackground;
+        tankselectbackground.Open("TankSelectBack2.png");
+        tankselectbackground.Draw(0,0);
+
+        LCD.WriteAt("Select Tank Colors", 60, 10);
+
+        // --- Player 1 options ---
+        Button p1Blue("Blue", 15, 40, 47, 47);
+        Button p1Green("Green", 15, 97, 47, 47);
+        Button p1Red("Red", 15, 156, 47, 47);
+        Button p1Pink("Pink",67,40,47,47);
+        Button p1Yellow("Yellow",67,97,47,47);
+        Button p1Purple("Purple",67,156,47,47);
+
+        // --- Player 2 options ---
+        Button p2Blue("Blue", 256, 40, 47, 47); // Top Left
+        Button p2Green("Green", 256, 97, 47, 47); // Middle Left
+        Button p2Red("Red", 256, 156, 47, 47); // Bottom Left
+        Button p2Pink("Pink",204,40,47,47); // Top Riught
+        Button p2Yellow("Yellow",204,97,47,47); // Middle Right
+        Button p2Purple("Purple",204,156,47,47); // Bottom Right
+        Button confirm("Start", 125, 40, 70, 30);
+
+        // Draw
+        p1Blue.draw6(); 
+        p1Green.draw6(); 
+        p1Red.draw6();
+        p1Yellow.draw6();
+        p1Purple.draw6();
+        p1Pink.draw6();
+        p2Blue.draw6(); 
+        p2Green.draw6(); 
+        p2Red.draw6();
+        p2Yellow.draw6();
+        p2Purple.draw6();
+        p2Pink.draw6();
+        confirm.draw();
+
+        // Show current selections
+        LCD.WriteAt(("P1: " + tank1Color).c_str(), 15, 210);
+        LCD.WriteAt(("P2: " + tank2Color).c_str(), 200, 210);
+
+        float x, y;
+        waitForTouch(x, y);
+
+        // Player 1
+        if (p1Blue.isPressed(x, y))   tank1Color = "Blue";
+        else if (p1Green.isPressed(x, y)) tank1Color = "Green";
+        else if (p1Red.isPressed(x, y))   tank1Color = "Red";
+        else if (p1Pink.isPressed(x, y))   tank1Color = "Pink";
+        else if (p1Yellow.isPressed(x, y)) tank1Color = "Yellow";
+        else if (p1Purple.isPressed(x, y))   tank1Color = "Purple";
+
+        // Player 2
+        else if (p2Blue.isPressed(x, y))   tank2Color = "Blue";
+        else if (p2Green.isPressed(x, y)) tank2Color = "Green";
+        else if (p2Red.isPressed(x, y))   tank2Color = "Red";
+        else if (p2Pink.isPressed(x, y))   tank2Color = "Pink";
+        else if (p2Yellow.isPressed(x, y)) tank2Color = "Yellow";
+        else if (p2Purple.isPressed(x, y))   tank2Color = "Purple";
+
+
+        // Only allow leaving if both selected
+        else if (confirm.isPressed(x, y)) {
+            if (tank1Color != "" && tank2Color != "") {
+                return; // leave menu → start game
+            } 
+            else {
+                LCD.SetFontColor(BLACK);
+                LCD.FillRectangle(50, 100, 214, 20);
+                LCD.SetFontColor(WHITE);
+                LCD.DrawRectangle(50, 100, 214, 20);
+                LCD.SetFontColor(RED);
+                LCD.WriteAt("Select both tanks!", 50, 100);
+                LCD.SetFontColor(BLACK);
+                Sleep(1.0);
+            }
+        }
+    }
+}
+
 
 // Play Screen
 void playMenu() {
@@ -147,7 +243,9 @@ void playMenu() {
     int angleValue = 45;   // default
     int moveperturn = 3;
     int tank1X = 30;      // starting x-position
-    int tank1Y = 172;     // sits on ground (groundY - tankHeight)
+    int tank1Y = 172;
+    int tank2X = 150;      // starting x-position
+    int tank2Y = 172;     
     int tankWidth = 12;
     int tankHeight = 8;
 
@@ -162,9 +260,14 @@ void playMenu() {
         LCD.SetFontColor(GREEN);
         LCD.FillRectangle(0, groundY, 320, 60);
 
-        FEHImage tankImg;
-        tankImg.Open("BlueTank.png");
-        tankImg.Draw(tank1X, tank1Y);
+        FEHImage tank1;
+        tank1.Open((tank1Color + "TankP1.png").c_str());
+        tank1.Draw(tank1X, tank1Y);
+
+        FEHImage tank2;
+        tank2.Open((tank2Color + "TankP2.png").c_str());
+        tank2.Draw(tank2X, tank2Y);
+
 
         // top part of UI
         LCD.SetFontColor(GRAY);
@@ -172,13 +275,13 @@ void playMenu() {
         LCD.SetFontColor(WHITE);
         LCD.DrawRectangle(0, 0, 320, 20);
         LCD.SetFontScale(0.5);
-        FEHImage tankmock;
-        tankmock.Open("BlueTank.png");
-        tankmock.Draw(5,7);
+        FEHImage tankmockP1;
+        tankmockP1.Open((tank1Color + "TankP1.png").c_str());
+        tankmockP1.Draw(5,7);
         LCD.WriteAt("P1:", 20, 4);
-        FEHImage tankmo;
-        tankmo.Open("RedTank.png");
-        tankmo.Draw(302,7);
+        FEHImage tankmockP2;
+        tankmockP2.Open((tank2Color + "TankP2.png").c_str());
+        tankmockP2.Draw(302,7);
         LCD.WriteAt(":P2", 280, 5);
         LCD.WriteAt("Volleys:", 138, 5);
         LCD.SetFontScale(1);
@@ -199,7 +302,7 @@ void playMenu() {
         Pow.draw3();
         LCD.WriteAt("POW",35,205);
         LCD.SetFontColor(WHITE);
-        LCD.WriteAt(powerValue, 35, 217);
+        LCD.WriteAt(powerValue, 40, 217);
         LCD.SetFontColor(BLACK);
         // Pow Large Decrement Button
         Button PowLD("",5,205,10,30);
@@ -352,14 +455,15 @@ void mainMenu() {
 
 // background image
     FEHImage backgroundmain;
-    backgroundmain.Open("test2.png");
+    backgroundmain.Open("MAINBACK.png");
     backgroundmain.Draw(0,0);
+    
 
-    Button play("Play", 50, 50, 100, 30);
-    Button stats("Stats", 50, 90, 100, 30);
-    Button inst("Instructions", 50, 130, 160, 30);
-    Button cred("Credits", 50, 170, 100, 30);
-    Button exit("Exit", 50, 210, 100, 30);
+    Button play("Play", 130, 55, 60, 30);
+    Button stats("Stats", 125, 90, 75, 30);
+    Button inst("Instructions", 85, 125, 160, 30);
+    Button cred("Credits", 114, 160, 100, 30);
+    Button exit("Exit", 130, 195, 60, 30);
 
     play.draw();
     stats.draw();
@@ -369,7 +473,10 @@ void mainMenu() {
 
     float x, y;
     waitForTouch(x, y);
-    if (play.isPressed(x, y)) playMenu();
+    if (play.isPressed(x, y)) {
+    tankSelectMenu();   
+    playMenu();         
+    }
     else if (stats.isPressed(x, y)) statsMenu();
     else if (inst.isPressed(x, y)) instructionsMenu();
     else if (cred.isPressed(x, y)) creditsMenu();
