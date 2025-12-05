@@ -3,6 +3,7 @@
 #include "FEHImages.h"
 #include <string>
 #include <math.h>
+#include <stdlib.h>
 using namespace std;
 #define g 9.81
 #define pi 3.14159265359
@@ -236,6 +237,47 @@ void tankSelectMenu() {
     }
 }
 
+// generates the terrain randomly
+int terrainHeight[320];
+void generateTerrain()
+{
+    int h = 150; // starting baseline height
+
+    for (int x = 0; x < 320; x++) {
+        // Random vertical variation
+        int change = (rand() % 7) - 3; // range: -3 to +3
+        h += change;
+
+        // terrain stays visible always
+        if (h < 100) h = 100;
+        if (h > 200) h = 200;
+
+        terrainHeight[x] = h;
+    }
+}
+
+// Draws the terrain
+void drawTerrain()
+{
+    LCD.SetFontColor(GREEN);
+    for (int i = 0; i < 320; i++) {
+        LCD.DrawLine(i, terrainHeight[i], i, 240); // fill downward
+    }
+}
+
+// Spawns tanks
+void spawnTanks(int &tank1X, int &tank1Y, int &tank2X, int &tank2Y)
+{
+    // Random positions
+    tank1X = rand() % 80 + 20;           // left side spawn zone
+    tank2X = rand() % 80 + 220;          // right side spawn zone
+
+    // Tanks rest just above terrain
+    tank1Y = terrainHeight[tank1X] - 8;  // subtract tank height
+    tank2Y = terrainHeight[tank2X] - 8;
+}
+
+
 
 // Play Screen
 void playMenu() {
@@ -248,6 +290,15 @@ void playMenu() {
     int tank2Y = 172;     
     int tankWidth = 12;
     int tankHeight = 8;
+    int volleyCount=5;
+    int p1Score = 0;
+    int p2Score = 0;
+    bool p1Turn = true;
+    bool p2Turn = false;
+    int movesRemaining = 3;
+
+    generateTerrain();
+    spawnTanks(tank1X, tank1Y, tank2X, tank2Y);
 
 
     while(true){
@@ -256,9 +307,8 @@ void playMenu() {
         LCD.DrawVerticalLine(160, 0, 240 );
         LCD.DrawHorizontalLine(120,0,320);
 
-        int groundY = 180;
         LCD.SetFontColor(GREEN);
-        LCD.FillRectangle(0, groundY, 320, 60);
+        drawTerrain();
 
         FEHImage tank1;
         tank1.Open((tank1Color + "TankP1.png").c_str());
@@ -384,6 +434,10 @@ void playMenu() {
             // keep tank within screen bounds
             if (tank1X < 0) tank1X = 0;
             if (tank1X > 320 - tankWidth) tank1X = 320 - tankWidth;
+
+            tank1Y = terrainHeight[tank1X]-tankHeight;
+            tank2Y = terrainHeight[tank2X] - tankHeight;
+
 
         }
         if (fireBtn.isPressed(x, y)) moveperturn =3;
