@@ -585,10 +585,10 @@ void renderProjectileArc(float x0, float y0, float power, float angleDeg) {
     float angleRad=angleDeg*(pi/180.0);
     float vx = power * cos(angleRad);
     float vy = power * sin(angleRad);
-    for (float t = 0; t < 7.0; t += 0.05)
+    for (float t = 0; t < 100; t += 0.05)
     {
-        int x = x0 + vx * t;
-        int y = y0 - (vy * t - 0.5 * g * t * t); // minus because LCD y increases downward
+        int x = (x0+4) + vx * t;
+        int y = (y0-4) - (vy * t - 0.5 * g * t * t); // minus because LCD y increases downward
 
         if (x < 0 || x > 320 || y < 0 || y > 240) {break;} // Stop if arc goes offscreen
 
