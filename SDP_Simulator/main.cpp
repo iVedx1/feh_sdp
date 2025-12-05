@@ -3,14 +3,14 @@
 #include "FEHImages.h"
 #include <string>
 #include <math.h>
+#include <cmath>
 #include <stdlib.h>
 using namespace std;
 #define g 9.81
 #define pi 3.14159265359
 
-// -------------------------
+
 // Button Class
-// -------------------------
 class Button {
 public:
     string label;
@@ -108,9 +108,7 @@ public:
     }
 };
 
-// -------------------------
 // Touch handling with debouncing
-// -------------------------
 void waitForTouch(float &x, float &y) {
     // Wait until a press is detected
     while (!LCD.Touch(&x, &y)) {}
@@ -120,6 +118,9 @@ void waitForTouch(float &x, float &y) {
 }
 
 void mainMenu();
+void renderProjectileArc(float x0, float y0, float power, float angleDeg);
+bool wasHitOnSelf(float projX, float projY, float tankX, float tankY);
+bool wasHitOnOpponent(float projX, float projY, float tankX, float tankY);
 
 bool pauseMenu()
 {
@@ -146,6 +147,7 @@ bool pauseMenu()
         return true; // default to resume
     }
 }
+
 // Defines string color
 string tank1Color = "";
 string tank2Color = "";
@@ -216,7 +218,6 @@ void tankSelectMenu() {
         else if (p2Pink.isPressed(x, y))   tank2Color = "Pink";
         else if (p2Yellow.isPressed(x, y)) tank2Color = "Yellow";
         else if (p2Purple.isPressed(x, y))   tank2Color = "Purple";
-
 
         // Only allow leaving if both selected
         else if (confirm.isPressed(x, y)) {
@@ -329,8 +330,8 @@ void playMenu() {
     while(true){
         LCD.Clear();
         // Reference Lines
-        LCD.DrawVerticalLine(160, 0, 240 );
-        LCD.DrawHorizontalLine(120,0,320);
+        // LCD.DrawVerticalLine(160, 0, 240 );
+        // LCD.DrawHorizontalLine(120,0,320);
 
         LCD.SetFontColor(GREEN);
         drawTerrain();
@@ -404,7 +405,6 @@ void playMenu() {
         // Ang Large Increment Button
         Button AngLI("",166,205,10,30);
 
-
         // Move Button
         Button Move("",200,0,0,0);
         Move.draw4();
@@ -465,7 +465,10 @@ void playMenu() {
 
 
         }
-        if (fireBtn.isPressed(x, y)) moveperturn =3;
+        if (fireBtn.isPressed(x, y)) {
+            moveperturn =3;
+            renderProjectileArc(tank1X + tankWidth / 2, tank1Y, powerValue, angleValue);
+        }
         continue;
 
         LCD.DrawHorizontalLine(210,0,320);
@@ -565,7 +568,6 @@ void mainMenu() {
         Sleep(1.0);
         return;
     }
-    else (true);
 }
 
 // reset volleys
@@ -574,22 +576,48 @@ void resetVolleys(int &volleyCount) {
     volleyCount=5;
 }
 
-// renders the arc of a projectile given the power and angle of a shot
+/*
+renders the arc of a projectile given the power and angle of a shot
+accounts for terrain collision, boundary conditions, and hitting opponent tank
+*/
 void renderProjectileArc(float x0, float y0, float power, float angleDeg) {
+    LCD.SetFontColor(WHITE);
     float angleRad=angleDeg*(pi/180.0);
     float vx = power * cos(angleRad);
     float vy = power * sin(angleRad);
     for (float t = 0; t < 7.0; t += 0.05)
     {
-        float x = x0 + vx * t;
-        float y = y0 - (vy * t - 0.5 * g * t * t); // minus because LCD y increases downward
-        if (x < 0 || x > 320 || y < 0 || y > 240) // Stop if arc goes offscreen
+        int x = x0 + vx * t;
+        int y = y0 - (vy * t - 0.5 * g * t * t); // minus because LCD y increases downward
+
+        if (x < 0 || x > 320 || y < 0 || y > 240) {break;} // Stop if arc goes offscreen
+
+        if (y >= terrainHeight[x]) {break;} // Check for collision with terrain
+
+        if(wasHitOnOpponent(x,y,150,172)){
+            LCD.SetFontColor(RED);
+            LCD.WriteAt("Hit!", 140, 120);
+            Sleep(1.0);
             break;
+        }
+
         LCD.DrawPixel(x, y);
+        Sleep(0.005);
+        LCD.Update();
     }
+    LCD.SetFontColor(BLACK);
 }
 
 bool wasHitOnSelf(float projX, float projY, float tankX, float tankY)
+{
+    const int TANK_width=12;
+    const int TANK_height=8;
+    bool withinX = (projX >= tankX) && (projX <= tankX + TANK_width);
+    bool withinY = (projY >= tankY) && (projY <= tankY + TANK_height);
+    return (withinX && withinY);
+}
+
+bool wasHitOnOpponent(float projX, float projY, float tankX, float tankY)
 {
     const int TANK_width=12;
     const int TANK_height=8;
