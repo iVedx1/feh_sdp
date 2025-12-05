@@ -248,11 +248,36 @@ void generateTerrain()
         int change = (rand() % 7) - 3; // range: -3 to +3
         h += change;
 
-        // terrain stays visible always
+        // Terrain stays visible always
         if (h < 100) h = 100;
         if (h > 200) h = 200;
 
         terrainHeight[x] = h;
+    }
+    
+    // Multiple passes for smooth terrain
+    for (int pass = 0; pass < 4; pass++) {
+        int temp[320];
+        for (int x = 0; x < 320; x++) {
+            int sum = terrainHeight[x] * 4; // times four weights the average
+            int count = 4;
+            
+            if (x > 0) { // left neighbor
+                sum += terrainHeight[x - 1] * 2;
+                count += 2;
+            }
+            if (x < 319) { // right neighbor
+                sum += terrainHeight[x + 1] * 2;
+                count += 2;
+            }
+            
+            temp[x] = sum / count;
+        }
+        
+        // Copy smoothed terrain back
+        for (int x = 0; x < 320; x++) {
+            terrainHeight[x] = temp[x];
+        }
     }
 }
 
