@@ -303,7 +303,38 @@ void spawnTanks(int &tank1X, int &tank1Y, int &tank2X, int &tank2Y)
     tank2Y = terrainHeight[tank2X] - 8;
 }
 
+void endScreen(int p1Score, int p2Score) {
+    LCD.Clear();
 
+    // Title
+    LCD.SetFontColor(WHITE);
+    LCD.SetFontScale(2);
+    LCD.WriteAt("GAME OVER", 45, 20);
+
+    // Scores
+    LCD.SetFontScale(1);
+    LCD.WriteAt("Player 1 Score:", 35, 80);
+    LCD.WriteAt(p1Score, 220, 80);
+
+    LCD.WriteAt("Player 2 Score:", 35, 120);
+    LCD.WriteAt(p2Score, 220, 120);
+
+    // Determine winner
+    if (p1Score > p2Score) {
+        LCD.WriteAt("Winner: PLAYER 1", 35, 170);
+    } else if (p2Score > p1Score) {
+        LCD.WriteAt("Winner: PLAYER 2", 35, 170);
+    } else {
+        LCD.WriteAt("TIE GAME!", 35, 170);
+    }
+
+    LCD.WriteAt("Tap to return to menu", 35, 210);
+
+    // Wait for touch to return to main menu
+    float x, y;
+    waitForTouch(x, y);
+    mainMenu(); // go back to main menu
+}
 
 // Play Screen
 void playMenu() {
@@ -332,7 +363,7 @@ void playMenu() {
         // Reference Lines
         // LCD.DrawVerticalLine(160, 0, 240 );
         // LCD.DrawHorizontalLine(120,0,320);
-
+        
         FEHImage background;
         background.Open("NightSky1.png");
         background.Draw(0,0);
@@ -467,7 +498,6 @@ void playMenu() {
             tank1Y = terrainHeight[tank1X]-tankHeight;
             tank2Y = terrainHeight[tank2X] - tankHeight;
 
-
         }
         if (fireBtn.isPressed(x, y)) {
             moveperturn =3;
@@ -589,11 +619,7 @@ void renderProjectileArc(float x0, float y0, float power, float angleDeg) {
     float angleRad=angleDeg*(pi/180.0);
     float vx = power * cos(angleRad);
     float vy = power * sin(angleRad);
-<<<<<<< HEAD
-    for (float t = 0; t < 100.0; t += 0.05)
-=======
     for (float t = 0; t < 100; t += 0.05)
->>>>>>> 8859b070e5295df4c2f4d9d9bcd81f90d4bfdf32
     {
         int x = (x0+4) + vx * t;
         int y = (y0-4) - (vy * t - 0.5 * g * t * t); // minus because LCD y increases downward
