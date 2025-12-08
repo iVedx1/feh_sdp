@@ -9,15 +9,22 @@ using namespace std;
 #define g 9.81
 #define pi 3.14159265359
 
-// ---------- Button Class ----------
+// A class that represents a clickable button on the screen
+// Has a string label, position (x, y), width, and height
+// Can draw itself and check if it is pressed based on touch coordinates
+// Multiple draw styles are provided for different button appearances
+// Methods: draw(), draw2(), draw3(), draw4(), draw5(), draw6(), isPressed(tx, ty)
+// Written by Vedant Rakhonde
 class Button {
 public:
-    string label;
-    int x, y, w, h;
+    string label; // button label
+    int x, y, w, h; // position and size (x, y, width, height)
 
+    // Simple constructor
     Button(string text, int xPos, int yPos, int width, int height)
         : label(text), x(xPos), y(yPos), w(width), h(height) {}
 
+    // Draw button with black fill and white border
     void draw() {
         LCD.SetFontColor(BLACK); 
         LCD.FillRectangle(x, y, w, h);
@@ -26,12 +33,14 @@ public:
         LCD.WriteAt(label.c_str(), x + 5, y + 5);
     }
 
+    // Draw button as a simple pause icon
     void draw2() {
         LCD.SetFontColor(WHITE);
         LCD.FillRectangle(x + 3, y, 2, h);
         LCD.FillRectangle(x + 8, y, 2, h);
     }
 
+    // Draw button with arrows on sides
     void draw3(){
         LCD.SetFontColor(BLACK);
         LCD.FillRectangle(x, y, 70, 30); 
@@ -63,6 +72,7 @@ public:
         LCD.WriteAt(">", x+73, y+9);
     }
 
+    // Draw button with single arrows on sides
     void draw4(){
         LCD.SetFontColor(BLACK);
         LCD.FillRectangle(x, y, 45, 30);
@@ -82,6 +92,7 @@ public:
         LCD.WriteAt(">", x+37, y+9);
     }
 
+    // Draw a button with a red filled background
     void draw5() {
         LCD.SetFontColor(RED);
         LCD.FillRectangle(x, y, w, h);
@@ -90,56 +101,73 @@ public:
         LCD.WriteAt(label.c_str(), x + 5, y + 5);
     }
 
+    // Generic button with a white border
     void draw6() {
         LCD.SetFontColor(WHITE);
         LCD.DrawRectangle(x, y, w, h);
     }
 
+    // Check if the button is pressed based on touch coordinates
+    // Input: tx, ty - touch coordinates
+    // Output: true if pressed, false otherwise
     bool isPressed(float tx, float ty) {
         return (tx >= x && tx <= x + w && ty >= y && ty <= y + h);
     }
 };
 
 
-// ---------- Touch handling ----------
+// Touch handling helper to maintain consistent touch input behavior
+// Inputs: references to float variables x and y to store touch coordinates
+// Written by Vedant Rakhonde
 void waitForTouch(float &x, float &y) {
     while (!LCD.Touch(&x, &y)) {}
-    Sleep(0.15);
+    Sleep(0.15); // sleep to prevent multiple detections of the same real-world touch
     while (LCD.Touch(&x, &y)) {}
 }
 
-// prototypes
-void mainMenu();
-void tankSelectMenu();
-void playMenu();
-void statsMenu();
-void instructionsMenu();
-void creditsMenu();
-bool pauseMenu();
-void generateTerrain();
-void drawTerrain();
-void spawnTanks(int &tank1X, int &tank1Y, int &tank2X, int &tank2Y);
-void endScreen(int p1Score, int p2Score);
+// Function prototypes
+void mainMenu(); // Written by Vedant Rakhonde
+void tankSelectMenu(); // Written by Lucas Tinter
+void playMenu(); // Written by Vedant Rakhonde
+void statsMenu(); // Written by Vedant Rakhonde
+void instructionsMenu(); // Written by Vedant Rakhonde
+void creditsMenu(); // Written by Vedant Rakhonde
+bool pauseMenu(); // Written by Lucas Tinter
+void generateTerrain(); // Written by Lucas Tinter
+void drawTerrain(); // Written by Lucas Tinter
+void spawnTanks(int &tank1X, int &tank1Y, int &tank2X, int &tank2Y); // Written by Lucas Tinter
+void endScreen(int p1Score, int p2Score); // Written by Vedant Rakhonde
+bool renderProjectileAndCheckHit(class Tank &shooter, class Tank &target); // Written by Vedant Rakhonde
+void drawTerrainWithDelay(); // Written by Vedant Rakhonde
 
-// ---------- Globals ----------
+/// global variables for game state
 string tank1Color = "";
 string tank2Color = "";
 int terrainHeight[320];
 
-// ---------- Tank class ----------
+// Stats tracking global variables
+int gamesPlayed = 0;
+int totalP1Score = 0;
+int totalP2Score = 0;
+int highestScore = 0;
+
+// A class that represents a player tank
+// Attributes: color, position (x, y), size (width, height), angle, power, movesLeft, score, sprite image, isPlayer1
+// Written by Vedant Rakhonde
 class Tank {
 public:
-    string color;
-    int x, y;
-    int width;
-    int height;
-    int angle;
-    int power;
-    int movesLeft;
-    int score;
-    FEHImage sprite;
-    bool isPlayer1;
+    string color; // color of the tank
+    int x, y; // position of the tank
+    int width; // width of the tank's hitbox
+    int height; // height of the tank's hitbox
+    int angle; // angle of the tank's turret
+    int power; // power of the tank's shot
+    int movesLeft; // remaining moves this round for the tank
+    int score; // score of the tank
+    FEHImage sprite; // sprite image of the tank
+    bool isPlayer1; // true if player 1, false if player 2
 
+    // Default constructor without any values in case something went wrong
     Tank() {
         color = "Blue";
         x = 0; y = 0;
@@ -151,6 +179,7 @@ public:
         isPlayer1 = true;
     }
 
+    // Constructor with color and player number
     Tank(string c, bool p1) {
         color = c;
         width = 12; height = 8;
@@ -162,6 +191,7 @@ public:
         x = 0; y = 0;
     }
 
+    // Load the appropriate sprite based on color and player number
     void loadSprite() {
         if (isPlayer1) {
             sprite.Open((color + "TankP1.png").c_str());
@@ -170,10 +200,12 @@ public:
         }
     }
 
+    // Draw the tank at its current position
     void draw() {
         sprite.Draw(x, y);
     }
 
+    // Respawn the tank at a given x position, adjusting y based on terrain height to place it on the ground
     void respawnAtX(int spawnX) {
         x = spawnX;
         if (x < 0) x = 0;
@@ -182,6 +214,7 @@ public:
         if (y < 0) y = 0;
     }
 
+    // Move the tank by a given delta x, adjusting y based on terrain height
     void moveBy(int dx) {
         if (movesLeft <= 0) return;
         x += dx;
@@ -191,10 +224,12 @@ public:
         movesLeft--;
     }
 
+    // Reset the number of moves left for the tank
     void resetMoves(int m = 3) {
         movesLeft = m;
     }
 
+    // Check if a given point (px, py) hits the tank's hitbox
     bool isHit(int px, int py) {
         bool withinX = (px >= x) && (px <= x + width);
         bool withinY = (py >= y) && (py <= y + height);
@@ -202,7 +237,7 @@ public:
     }
 };
 
-// ---------- Terrain ----------
+// Generates terrain heights for the game by creating a random walk and running 4 smoothing passes
 void generateTerrain()
 {
     int h = 150;
@@ -228,15 +263,24 @@ void generateTerrain()
     }
 }
 
-void drawTerrain()
-{
+// draw the terrain on the screen, add a delay for visual effect
+void drawTerrainWithDelay() {
+    LCD.SetFontColor(GREEN);
+    for (int i = 0; i < 320; i++) {
+        LCD.DrawLine(i, terrainHeight[i], i, 240);
+        Sleep(0.001);
+    }
+}
+
+// draw the terrain on the screen without delay
+void drawTerrain() {
     LCD.SetFontColor(GREEN);
     for (int i = 0; i < 320; i++) {
         LCD.DrawLine(i, terrainHeight[i], i, 240);
     }
 }
 
-// ---------- Spawn helper ----------
+// Spawn tanks at random x positions on the terrain
 void spawnTanks(int &tank1X, int &tank1Y, int &tank2X, int &tank2Y)
 {
     tank1X = rand() % 80 + 20;
@@ -251,7 +295,8 @@ void spawnTanks(int &tank1X, int &tank1Y, int &tank2X, int &tank2Y)
     tank2Y = terrainHeight[tank2X] - 8;
 }
 
-// ---------- Pause Menu ----------
+// pause menu that allows the player to resume or return to main menu
+// Returns true to resume, false to return to main menu
 bool pauseMenu()
 {
     LCD.Clear();
@@ -275,8 +320,18 @@ bool pauseMenu()
     }
 }
 
-// ---------- End screen ----------
+// end screen showing final scores and options to play again or return to main menu
+// Updates global stats variables
+// Inputs: p1Score, p2Score - final scores of player 1 and player 2
 void endScreen(int p1Score, int p2Score) {
+    
+    // Update stats
+    gamesPlayed++;
+    totalP1Score += p1Score;
+    totalP2Score += p2Score;
+    if (p1Score > highestScore) highestScore = p1Score;
+    if (p2Score > highestScore) highestScore = p2Score;
+    
     LCD.Clear();
 
     LCD.SetFontColor(WHITE);
@@ -292,21 +347,43 @@ void endScreen(int p1Score, int p2Score) {
     LCD.WriteAt(to_string(p2Score).c_str(), 220, 120);
 
     if (p1Score > p2Score) {
-        LCD.WriteAt("Winner: PLAYER 1", 35, 170);
+        LCD.SetFontColor(GREEN);
+        LCD.WriteAt("Winner: PLAYER 1!", 35, 160);
     } else if (p2Score > p1Score) {
-        LCD.WriteAt("Winner: PLAYER 2", 35, 170);
+        LCD.SetFontColor(GREEN);
+        LCD.WriteAt("Winner: PLAYER 2!", 35, 160);
     } else {
-        LCD.WriteAt("TIE GAME!", 35, 170);
+        LCD.SetFontColor(YELLOW);
+        LCD.WriteAt("TIE GAME!", 70, 160);
     }
 
-    LCD.WriteAt("Tap to return to menu", 35, 210);
+    LCD.SetFontColor(WHITE);
+    Button playAgainBtn("Play Again", 30, 200, 130, 30);
+    Button exitBtn("Main Menu", 166, 200, 125, 30);
+    
+    playAgainBtn.draw();
+    exitBtn.draw();
 
     float x, y;
-    waitForTouch(x, y);
-    mainMenu();
+    while (true) {
+        waitForTouch(x, y);
+        if (playAgainBtn.isPressed(x, y)) {
+            playMenu();
+            return;
+        }
+        if (exitBtn.isPressed(x, y)) {
+            mainMenu();
+            return;
+        }
+    }
 }
 
-// ---------- Projectile & firing ----------
+// Render the projectile's trajectory and check for hits on the target tank
+// Inputs: shooter - the tank that is shooting
+//         target - the tank that is being targeted
+// Returns: true if the target tank is hit, false otherwise
+// Displays hit or miss and updates shooter's score if hit
+// Uses physics equations for projectile motion and simple animation
 bool renderProjectileAndCheckHit(Tank &shooter, Tank &target)
 {
     LCD.SetFontColor(WHITE);
@@ -318,24 +395,20 @@ bool renderProjectileAndCheckHit(Tank &shooter, Tank &target)
     float x0 = shooter.x + shooter.width / 2;
     float y0 = shooter.y;
     
-    // TUNING PARAMETERS - adjust these to control speed
-    float animationSpeed = 0.9f;  // Overall speed multiplier (lower = slower)
+    float animationSpeed = 0.9f;
     float baseTimeStep = 0.015f + (shooter.power / 100.0f) * 0.03f;
-    float sleepDuration = 0.005f;  // Time between frames
+    float sleepDuration = 0.005f;
     
-    // Trail storage
-    const int trailLength = 8;  // Shorter trail = faster fade
+    const int trailLength = 8;
     int trailX[trailLength];
     int trailY[trailLength];
     int trailPos = 0;
     
-    // Initialize trail
     for (int i = 0; i < trailLength; i++) {
         trailX[i] = -1;
     }
 
     for (float t = 0.0f; t < 100.0f; ) {
-        // Adaptive time step based on current velocity and power
         float currentVy = vy - g * t;
         float speed = sqrt(vx * vx + currentVy * currentVy);
         
@@ -363,18 +436,15 @@ bool renderProjectileAndCheckHit(Tank &shooter, Tank &target)
             return true;
         }
 
-        // Erase the oldest trail point
         if (trailX[trailPos] >= 0) {
-            LCD.SetFontColor(BLACK);  // Background color
+            LCD.SetFontColor(GRAY);
             LCD.DrawPixel(trailX[trailPos], trailY[trailPos]);
         }
         
-        // Store current position
         trailX[trailPos] = x;
         trailY[trailPos] = y;
         trailPos = (trailPos + 1) % trailLength;
         
-        // Draw current projectile
         LCD.SetFontColor(WHITE);
         LCD.DrawPixel(x, y);
         
@@ -385,8 +455,8 @@ bool renderProjectileAndCheckHit(Tank &shooter, Tank &target)
     return false;
 }
 
-
-// ---------- Menus: Tank select ----------
+// tank selection menu allowing players to choose their tank colors
+// Updates global variables tank1Color and tank2Color
 void tankSelectMenu() {
     while (true) {
         LCD.Clear();
@@ -465,16 +535,17 @@ void tankSelectMenu() {
     }
 }
 
-// ---------- Play Menu ----------
+// an enum that represents which player's turn it is
 enum Turn { PLAYER1, PLAYER2 };
 
 Turn nextTurn(Turn cur) {
     return (cur == PLAYER1 ? PLAYER2 : PLAYER1);
 }
 
-// Main gameplay loop
+// Main gameplay loop handling turns, drawing UI, and managing game state
 void playMenu() {
     generateTerrain();
+    drawTerrainWithDelay();
     srand(TimeNow());
 
     int t1x, t1y, t2x, t2y;
@@ -492,8 +563,10 @@ void playMenu() {
     P2.resetMoves(3);
 
     Turn turn = PLAYER1;
+    int roundsPlayed = 0;
+    const int MAX_ROUNDS = 10;
 
-    while (true) {
+    while (roundsPlayed < MAX_ROUNDS) {
         LCD.Clear();
 
         FEHImage background;
@@ -516,8 +589,10 @@ void playMenu() {
         LCD.WriteAt("P1:", 20, 5);
         LCD.WriteAt(to_string(P1.score).c_str(), 40, 5);
 
-        LCD.WriteAt("Turn:", 138, 5);
-        LCD.WriteAt((turn == PLAYER1 ? "P1" : "P2"), 170, 5);
+        // Display round counter
+        LCD.WriteAt("Round:", 118, 5);
+        LCD.WriteAt(to_string((roundsPlayed / 2) + 1).c_str(), 154, 5);
+        LCD.WriteAt("/5", 165, 5);
 
         LCD.WriteAt(to_string(P2.score).c_str(), 270, 5);
         LCD.WriteAt(":P2", 285, 5);
@@ -534,7 +609,12 @@ void playMenu() {
 
         LCD.SetFontScale(1);
 
-        // Movement controls - spans approximately 100 pixels
+        // Moves label and controls
+        LCD.SetFontColor(WHITE);
+        LCD.SetFontScale(0.5);
+        LCD.WriteAt("Moves:", 10, 190);
+        LCD.SetFontScale(1);
+        
         Button moveLeft("<", 10, 206, 22, 28);
         Button moveRight(">", 65, 206, 22, 28);
 
@@ -548,7 +628,12 @@ void playMenu() {
             LCD.WriteAt(to_string(P2.movesLeft).c_str(), 41, 210);
         }
 
-        // Angle controls - spans approximately 100 pixels
+        // Angle label and controls
+        LCD.SetFontColor(WHITE);
+        LCD.SetFontScale(0.5);
+        LCD.WriteAt("Angle:", 102, 190);
+        LCD.SetFontScale(1);
+        
         Button angDecBig("<", 102, 206, 22, 28);
         Button angDec("<", 126, 206, 22, 28);
         Button angInc(">", 178, 206, 22, 28);
@@ -566,7 +651,12 @@ void playMenu() {
             LCD.WriteAt(to_string(P2.angle).c_str(), 150, 210);
         }
 
-        // Power controls - spans approximately 90 pixels
+        // Power label and controls
+        LCD.SetFontColor(WHITE);
+        LCD.SetFontScale(0.5);
+        LCD.WriteAt("Power:", 234, 190);
+        LCD.SetFontScale(1);
+        
         Button powDec("<", 234, 206, 22, 28);
         Button powInc(">", 289, 206, 22, 28);
 
@@ -582,8 +672,7 @@ void playMenu() {
 
         LCD.SetFontScale(1);
 
-        // FIRE button - centered above the control bar
-        Button fireBtn("FIRE", 130, 173, 60, 28); 
+        Button fireBtn("FIRE", 134, 173, 60, 28); 
         fireBtn.draw5();
 
         Button pauseBtn("", 5, 26, 12, 12);
@@ -686,23 +775,51 @@ void playMenu() {
                 renderProjectileAndCheckHit(P2, P1);
             }
 
+            roundsPlayed++;
             turn = nextTurn(turn);
             Sleep(0.2);
+            
+            // Check if we've completed 10 rounds
+            if (roundsPlayed >= MAX_ROUNDS) {
+                endScreen(P1.score, P2.score);
+                return;
+            }
             continue;
         }
     }
 }
 
-// ---------- Other menus ----------
+// stats menu displaying game statistics including games played, highest score, total points, and average score per player
 void statsMenu() {
     LCD.Clear();
-    LCD.WriteAt("Stats", 10, 10);
-    LCD.WriteAt("Games Played: 0", 10, 30);
-    LCD.WriteAt("High Score: 0", 10, 50);
-    LCD.WriteAt("Average Score: 0", 10, 70);
-    LCD.WriteAt("Total Points: 0", 10, 90);
+    LCD.SetFontColor(WHITE);
+    
+    LCD.SetFontScale(2);
+    LCD.WriteAt("Statistics", 70, 20);
+    LCD.SetFontScale(1);
+    
+    LCD.WriteAt("Games Played:", 40, 70);
+    LCD.WriteAt(to_string(gamesPlayed).c_str(), 220, 70);
+    
+    LCD.WriteAt("Highest Score:", 40, 100);
+    LCD.WriteAt(to_string(highestScore).c_str(), 220, 100);
+    
+    int totalPoints = totalP1Score + totalP2Score;
+    LCD.WriteAt("Total Points:", 40, 130);
+    LCD.WriteAt(to_string(totalPoints).c_str(), 220, 130);
+    
+    if (gamesPlayed > 0) {
+        float avgScore = (float)totalPoints / (float)(gamesPlayed * 2);
+        LCD.WriteAt("Avg Score:", 40, 160);
+        char avgStr[10];
+        sprintf(avgStr, "%.1f", avgScore);
+        LCD.WriteAt(avgStr, 220, 160);
+    } else {
+        LCD.WriteAt("Avg Score/Player:", 40, 160);
+        LCD.WriteAt("N/A", 220, 160);
+    }
 
-    Button back("Return to Menu", 10, 120, 180, 30);
+    Button back("Return to Menu", 70, 200, 180, 30);
     back.draw();
 
     float x, y;
@@ -713,14 +830,17 @@ void statsMenu() {
     }
 }
 
+// instructions menu displaying game instructions
 void instructionsMenu() {
     LCD.Clear();
     LCD.WriteAt("Instructions", 10, 10);
     LCD.WriteAt("1. Select Angle & Power", 10, 30);
     LCD.WriteAt("2. Press Fire", 10, 50);
     LCD.WriteAt("3. Take turns!", 10, 70);
+    LCD.WriteAt("4. First to hit most in", 10, 90);
+    LCD.WriteAt("   5 rounds wins!", 10, 110);
 
-    Button back("Return to Menu", 10, 110, 180, 30);
+    Button back("Return to Menu", 10, 140, 180, 30);
     back.draw();
 
     float x, y;
@@ -731,6 +851,7 @@ void instructionsMenu() {
     }
 }
 
+// credits menu displaying game credits
 void creditsMenu() {
     LCD.Clear();
     LCD.WriteAt("Credits", 10, 10);
@@ -747,7 +868,8 @@ void creditsMenu() {
     }
 }
 
-// ---------- Main Menu ----------
+// main menu displaying options to play, view stats, instructions, credits, or exit
+// Navigates to the appropriate menu based on user selection
 void mainMenu() {
     LCD.Clear();
 
@@ -784,7 +906,7 @@ void mainMenu() {
     }
 }
 
-// ---------- Program entry ----------
+// main function initializing the program
 int main() {
     LCD.Clear();
     mainMenu();
