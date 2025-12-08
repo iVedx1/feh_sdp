@@ -95,9 +95,9 @@ public:
     // Draw a button with a red filled background
     void draw5() {
         LCD.SetFontColor(RED);
-        LCD.FillRectangle(x, y, w, h);
+        LCD.FillRectangle(x, y, w,h);
         LCD.SetFontColor(WHITE);
-        LCD.DrawRectangle(x, y, w, h);
+        LCD.DrawRectangle(x, y, w,h);
         LCD.WriteAt(label.c_str(), x + 5, y + 5);
     }
 
@@ -128,7 +128,7 @@ void waitForTouch(float &x, float &y) {
 // Function prototypes
 void mainMenu(); // Written by Vedant Rakhonde
 void tankSelectMenu(); // Written by Lucas Tinter
-void playMenu(); // Written by Vedant Rakhonde
+void playMenu(); // Written by Vedant Rakhonde and Lucas Tinter
 void statsMenu(); // Written by Vedant Rakhonde
 void instructionsMenu(); // Written by Vedant Rakhonde
 void creditsMenu(); // Written by Vedant Rakhonde
@@ -136,7 +136,7 @@ bool pauseMenu(); // Written by Lucas Tinter
 void generateTerrain(); // Written by Lucas Tinter
 void drawTerrain(); // Written by Lucas Tinter
 void spawnTanks(int &tank1X, int &tank1Y, int &tank2X, int &tank2Y); // Written by Lucas Tinter
-void endScreen(int p1Score, int p2Score); // Written by Vedant Rakhonde
+void endScreen(int p1Score, int p2Score); // Written by Vedant Rakhonde and Lucas Tinter
 bool renderProjectileAndCheckHit(class Tank &shooter, class Tank &target); // Written by Vedant Rakhonde
 void drawTerrainWithDelay(); // Written by Vedant Rakhonde
 
@@ -592,10 +592,10 @@ void playMenu() {
         // Display round counter
         LCD.WriteAt("Round:", 118, 5);
         LCD.WriteAt(to_string((roundsPlayed / 2) + 1).c_str(), 154, 5);
-        LCD.WriteAt("/5", 165, 5);
+        LCD.WriteAt("/5", 159, 5);
 
         LCD.WriteAt(to_string(P2.score).c_str(), 270, 5);
-        LCD.WriteAt(":P2", 285, 5);
+        LCD.WriteAt(":P2", 280, 5);
         FEHImage tankmockP2;
         tankmockP2.Open((P2.color + "TankP2.png").c_str());
         tankmockP2.Draw(302, 7);
@@ -610,70 +610,82 @@ void playMenu() {
         LCD.SetFontScale(1);
 
         // Moves label and controls
+        Button moveLeft("<", 10, 206, 22, 28);
+        Button moveRight(">", 46, 206, 22, 28);
+
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(10,206,50,28);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(10,206,50,28);
         LCD.SetFontColor(WHITE);
         LCD.SetFontScale(0.5);
-        LCD.WriteAt("Moves:", 10, 190);
+        LCD.WriteAt("M", 36, 205);
         LCD.SetFontScale(1);
-        
-        Button moveLeft("<", 10, 206, 22, 28);
-        Button moveRight(">", 65, 206, 22, 28);
-
         moveLeft.draw();
         moveRight.draw();
-
+        LCD.SetFontScale(.5);
         LCD.SetFontColor(WHITE);
         if (turn == PLAYER1) {
-            LCD.WriteAt(to_string(P1.movesLeft).c_str(), 41, 210);
+            LCD.WriteAt(to_string(P1.movesLeft).c_str(), 36, 215);
         } else {
-            LCD.WriteAt(to_string(P2.movesLeft).c_str(), 41, 210);
+            LCD.WriteAt(to_string(P2.movesLeft).c_str(), 36, 215);
         }
-
+        LCD.SetFontScale(1);
         // Angle label and controls
+        Button angDecBig("<", 75, 206, 22, 28);
+        Button angDec("<", 98, 206, 22, 28);
+        Button angInc(">", 146, 206, 22, 28);
+        Button angIncBig(">", 169, 206, 22, 28);
+
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(98,206,50,28);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(98,206,50,28);
         LCD.SetFontColor(WHITE);
         LCD.SetFontScale(0.5);
-        LCD.WriteAt("Angle:", 102, 190);
+        LCD.WriteAt("ANG", 124, 205);
         LCD.SetFontScale(1);
-        
-        Button angDecBig("<", 102, 206, 22, 28);
-        Button angDec("<", 126, 206, 22, 28);
-        Button angInc(">", 178, 206, 22, 28);
-        Button angIncBig(">", 202, 206, 22, 28);
-
         angDecBig.draw();
         angDec.draw();
         angInc.draw();
         angIncBig.draw();
-
+        LCD.SetFontScale(.5);
         LCD.SetFontColor(WHITE);
         if (turn == PLAYER1) {
-            LCD.WriteAt(to_string(P1.angle).c_str(), 150, 210);
+            LCD.WriteAt(to_string(P1.angle).c_str(), 126, 215);
         } else {
-            LCD.WriteAt(to_string(P2.angle).c_str(), 150, 210);
+            LCD.WriteAt(to_string(P2.angle).c_str(), 126, 215);
         }
-
+        LCD.SetFontScale(1);
         // Power label and controls
+        Button powDec("<", 198, 206, 22, 28);
+        Button powInc(">", 246, 206, 22, 28);
+
+        LCD.SetFontColor(BLACK);
+        LCD.FillRectangle(198,206,60,28);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawRectangle(198,206,60,28);
         LCD.SetFontColor(WHITE);
         LCD.SetFontScale(0.5);
-        LCD.WriteAt("Power:", 234, 190);
+        LCD.WriteAt("POW", 223, 205);
         LCD.SetFontScale(1);
-        
-        Button powDec("<", 234, 206, 22, 28);
-        Button powInc(">", 289, 206, 22, 28);
-
         powDec.draw();
         powInc.draw();
-
+        LCD.SetFontScale(.5);
         LCD.SetFontColor(WHITE);
         if (turn == PLAYER1) {
-            LCD.WriteAt(to_string(P1.power).c_str(), 260, 210);
+            LCD.WriteAt(to_string(P1.power).c_str(), 226, 215);
         } else {
-            LCD.WriteAt(to_string(P2.power).c_str(), 260, 210);
+            LCD.WriteAt(to_string(P2.power).c_str(), 226, 215);
         }
 
         LCD.SetFontScale(1);
 
-        Button fireBtn("FIRE", 134, 173, 60, 28); 
-        fireBtn.draw5();
+        Button fireBtn("", 278, 206, 26,26); 
+        LCD.SetFontColor(RED);
+        LCD.FillCircle(290, 218, 13);
+        LCD.SetFontColor(WHITE);
+        LCD.DrawCircle(290, 218, 13);
 
         Button pauseBtn("", 5, 26, 12, 12);
         pauseBtn.draw2();
